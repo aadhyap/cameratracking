@@ -1,0 +1,3 @@
+/home/aadhyap/Desktop/PersonTracking/build/CMakeFiles/HistogramOfOrientedGradients.dir
+/home/aadhyap/Desktop/PersonTracking/build/CMakeFiles/edit_cache.dir
+/home/aadhyap/Desktop/PersonTracking/build/CMakeFiles/rebuild_cache.dir
