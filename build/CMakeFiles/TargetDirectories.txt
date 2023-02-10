@@ -1,0 +1,3 @@
+/home/aadhyap/Desktop/cameratracking/build/CMakeFiles/HistogramOfOrientedGradients.dir
+/home/aadhyap/Desktop/cameratracking/build/CMakeFiles/edit_cache.dir
+/home/aadhyap/Desktop/cameratracking/build/CMakeFiles/rebuild_cache.dir

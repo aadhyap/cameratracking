@@ -60,6 +60,7 @@ int main(int argc, char** argv)
       rs2::pipeline p;
       rs2::config cfg;
       cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+
       p.start(cfg);
 
 
@@ -81,10 +82,12 @@ int main(int argc, char** argv)
 
       //  vector<String>::const_iterator it_image = frames.begin();
 
-      //wait for frames and get frameset
-      rs2::frameset frames = p.wait_for_frames();
+
         for (;;)
         {
+
+          //wait for frames and get frameset
+          rs2::frameset frames = p.wait_for_frames();
 
 
 
@@ -96,16 +99,28 @@ int main(int argc, char** argv)
 	          //Get each frame
 	          //rs2::frame color_frame = rs2Frame.get_color_frame();
 
-            cv::Mat frame = cv::Mat(cv::Size(1920, 1080), CV_8UC1, (void*)colored_frame.get_data());
+            // Get the depth frame's dimensions
+
+            const int w = colored_frame.as<rs2::video_frame>().get_width();
+            const int h = colored_frame.as<rs2::video_frame>().get_height();
 
 
-            if (frame.empty())
-                break;
-            detectAndDraw(hog, frame);
-            imshow("people detector", frame);
+            //cv::Mat frame = cv::Mat(cv::Size(1280, 720), CV_8UC1, (void*)colored_frame.get_data());
+
+            cv::Mat frame = cv::Mat(cv::Size(w, h), CV_8UC1, (void*)colored_frame.get_data());
+            Mat image(Size(w, h), CV_8UC3, (void*)colored_frame.get_data(), Mat::AUTO_STEP);
+
+
+            // if (frame.empty())
+                // break;
+            detectAndDraw(hog, image);
+            imshow("people detector", image);
             int c = waitKey( vc.isOpened() ? 30 : 0 ) & 255;
             if ( c == 'q' || c == 'Q' || c == 27)
                 break;
+
+            // if ( c == 'q' || c == 'Q' || c == 27)
+            //     break;
         }
 
 
