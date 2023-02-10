@@ -6,16 +6,13 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/video.hpp>
 #include <opencv2/videoio.hpp>
+#include <librealsense2/rs.hpp>
 using namespace cv;
 using namespace std;
-const char* keys =
-{
-    "{ help h      |                     | print help message }"
-    "{ image i     |                     | specify input image}"
-    "{ camera c    |                     | enable camera capturing }"
-    "{ video v     | 0   | use video as input }"
-    "{ directory d |                     | images directory}"
-};
+
+
+
+//This is drawing the bounding box
 static void detectAndDraw(const HOGDescriptor &hog, Mat &img)
 {
     vector<Rect> found, found_filtered;
@@ -51,52 +48,27 @@ static void detectAndDraw(const HOGDescriptor &hog, Mat &img)
 }
 int main(int argc, char** argv)
 {
-    CommandLineParser parser(argc, argv, keys);
-    if (parser.has("help"))
-    {
-        cout << "\nThis program demonstrates the use of the HoG descriptor using\n"
-            " HOGDescriptor::hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());\n";
-        parser.printMessage();
-        cout << "During execution:\n\tHit q or ESC key to quit.\n"
-            "\tUsing OpenCV version " << CV_VERSION << "\n"
-            "Note: camera device number must be different from -1.\n" << endl;
-        return 0;
-    }
+
     HOGDescriptor hog;
     hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
     namedWindow("people detector", 1);
-    string pattern_glob = "";
-    string video_filename = "../data/vtest.avi";
     int camera_id = 0;
-    if (parser.has("directory"))
+
+
+    if (camera_id != -1 )
     {
-        pattern_glob = parser.get<string>("directory");
-    }
-    else if (parser.has("image"))
-    {
-        pattern_glob = parser.get<string>("image");
-    }
-    else if (parser.has("camera"))
-    {
-        camera_id = parser.get<int>("camera");
-    }
-    else if (parser.has("video"))
-    {
-        video_filename = parser.get<string>("video");
-    }
-    if (!pattern_glob.empty() || camera_id != -1 || !video_filename.empty())
-    {
-        //Read from input image files
-        vector<String> filenames;
-        //Read from video file
+      rs2::pipeline p;
+      rs2::config cfg;
+      cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+      p.start(cfg);
+
+
+
+
+
         VideoCapture vc;
-        Mat frame;
-        if (!pattern_glob.empty())
-        {
-            String folder(pattern_glob);
-            glob(folder, filenames);
-        }
-        else if (camera_id != -1)
+        //Mat frame;
+        if (camera_id != -1)
         {
             vc.open(camera_id);
             if (!vc.isOpened())
@@ -106,41 +78,27 @@ int main(int argc, char** argv)
                 throw runtime_error(msg.str());
             }
         }
-        else
-        {
-            vc.open(video_filename.c_str());
-            if (!vc.isOpened())
-                throw runtime_error(string("can't open video file: " + video_filename));
-        }
-        vector<String>::const_iterator it_image = filenames.begin();
+
+      //  vector<String>::const_iterator it_image = frames.begin();
+
+      //wait for frames and get frameset
+      rs2::frameset frames = p.wait_for_frames();
         for (;;)
         {
-            if (!pattern_glob.empty())
-            {
-                bool read_image_ok = false;
-                for (; it_image != filenames.end(); ++it_image)
-                {
-                    cout << "\nRead: " << *it_image << endl;
-                    // Read current image
-                    frame = imread(*it_image);
-                    if (!frame.empty())
-                    {
-                        ++it_image;
-                        read_image_ok = true;
-                        break;
-                    }
-                }
-                //No more valid images
-                if (!read_image_ok)
-                {
-                    //Release the image in order to exit the while loop
-                    frame.release();
-                }
-            }
-            else
-            {
-                vc >> frame;
-            }
+
+
+
+
+            auto colored_frame = frames.get_color_frame();
+
+	          //rs2::frameset rs2Frame = rs2Pipe.wait_for_frames();
+
+	          //Get each frame
+	          //rs2::frame color_frame = rs2Frame.get_color_frame();
+
+            cv::Mat frame = cv::Mat(cv::Size(1920, 1080), CV_8UC1, (void*)colored_frame.get_data());
+
+
             if (frame.empty())
                 break;
             detectAndDraw(hog, frame);
@@ -149,6 +107,8 @@ int main(int argc, char** argv)
             if ( c == 'q' || c == 'Q' || c == 27)
                 break;
         }
+
+
     }
     return 0;
 }
