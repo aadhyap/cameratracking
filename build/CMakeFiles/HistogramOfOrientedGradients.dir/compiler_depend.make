@@ -285,10 +285,11 @@ CMakeFiles/HistogramOfOrientedGradients.dir/HistogramOfOrientedGradients.cpp.o: 
   /usr/local/include/opencv4/opencv2/highgui.hpp \
   /usr/local/include/opencv4/opencv2/imgcodecs.hpp \
   /usr/local/include/opencv4/opencv2/videoio.hpp \
+  /usr/local/include/opencv4/opencv2/tracking.hpp \
+  /usr/local/include/opencv4/opencv2/video/tracking.hpp \
   /usr/local/include/opencv4/opencv2/imgproc.hpp \
   /usr/local/include/opencv4/opencv2/imgproc/segmentation.hpp \
   /usr/local/include/opencv4/opencv2/video.hpp \
-  /usr/local/include/opencv4/opencv2/video/tracking.hpp \
   /usr/local/include/opencv4/opencv2/video/background_segm.hpp \
   /usr/include/librealsense2/rs.hpp \
   /usr/include/librealsense2/rs.h \
@@ -362,6 +363,8 @@ CMakeFiles/HistogramOfOrientedGradients.dir/HistogramOfOrientedGradients.cpp.o: 
 /usr/local/include/opencv4/opencv2/video/background_segm.hpp:
 
 /usr/local/include/opencv4/opencv2/imgproc.hpp:
+
+/usr/local/include/opencv4/opencv2/tracking.hpp:
 
 /usr/local/include/opencv4/opencv2/imgcodecs.hpp:
 
