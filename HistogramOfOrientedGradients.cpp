@@ -15,12 +15,9 @@ using namespace std;
 
 //This is drawing the bounding box
 
-int MOSSE(Rect &main_rect, rs2::pipeline &p) {
+int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
 
-
-
-
-  cv::Mat frame;
+  // cv::Mat frame;
   cout << "----------------"<< main_rect.tl()<<endl;
 
 	// Create tracker, select region-of-interest (ROI) and initialize the tracker
@@ -28,6 +25,8 @@ int MOSSE(Rect &main_rect, rs2::pipeline &p) {
 	cv::Rect trackingBox = main_rect;
 	tracker->init(frame, trackingBox);
   cout << "here"<<endl;
+  cv::imshow("Video feed", frame);
+  waitKey(0);
 
 	// Loop through available frames
 	for (;;) {
@@ -39,8 +38,9 @@ int MOSSE(Rect &main_rect, rs2::pipeline &p) {
       const int w = colored_frame.as<rs2::video_frame>().get_width();
       const int h = colored_frame.as<rs2::video_frame>().get_height();
       cv::Mat frame = cv::Mat(cv::Size(w, h), CV_8UC1, (void*)colored_frame.get_data());
-      cv::imshow("Video feed", frame);
+      // cv::imshow("Video feed", frame);
 		// Update the tracker and draw the rectangle around target if update was successful
+
     tracker->update(frame, trackingBox);
     // if (tracker->update(frame, trackingBox)) {
 		// 	cv::rectangle(frame, trackingBox, cv::Scalar(255, 0, 0), 2, 8);
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
 
       //  vector<String>::const_iterator it_image = frames.begin();
 
-
+        cv::Mat frame;
         for (;;)
         {
 
@@ -157,9 +157,10 @@ int main(int argc, char** argv)
 
             //cv::Mat frame = cv::Mat(cv::Size(1280, 720), CV_8UC1, (void*)colored_frame.get_data());
 
-            cv::Mat frame = cv::Mat(cv::Size(w, h), CV_8UC1, (void*)colored_frame.get_data());
+            frame = cv::Mat(cv::Size(w, h), CV_8UC1, (void*)colored_frame.get_data());
+            // init_frame =
             Mat image(Size(w, h), CV_8UC3, (void*)colored_frame.get_data(), Mat::AUTO_STEP);
-
+            frame = image;
 
             // if (frame.empty())
                 // break;
@@ -170,7 +171,7 @@ int main(int argc, char** argv)
               //imshow("people detector", image);
           }
 }
-          MOSSE(main_rect, p);
+          MOSSE(frame,main_rect, p);
               // int c = waitKey( vc.isOpened() ? 30 : 0 ) & 255;
               // if ( c == 'q' || c == 'Q' || c == 27){
               //     break;
