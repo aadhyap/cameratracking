@@ -18,42 +18,51 @@ using namespace std;
 int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
 
   // cv::Mat frame;
-  cout << "----------------"<< main_rect.tl()<<endl;
+  cout << " frame channels------"<< frame.channels() << endl;
 
 	// Create tracker, select region-of-interest (ROI) and initialize the tracker
 	cv::Ptr<cv::Tracker> tracker = TrackerKCF::create();
 	cv::Rect trackingBox = main_rect;
 	tracker->init(frame, trackingBox);
-  cout << "here"<<endl;
-  cv::imshow("Video feed", frame);
-  waitKey(0);
+
+  //able to initialize a frame
+  cout <<" here "<<endl;
 
 	// Loop through available frames
 	for (;;) {
 
+    cout << " inside loop "<<endl;
+
     rs2::frameset frames = p.wait_for_frames();
     auto colored_frame = frames.get_color_frame();
 
+    cout << " got frames "<<endl;
+
+    // Rect2d r2d = Rect2d (main_rect.x, main_rect.y, main_rect.width, main_rect.height);
 
       const int w = colored_frame.as<rs2::video_frame>().get_width();
       const int h = colored_frame.as<rs2::video_frame>().get_height();
-      cv::Mat frame = cv::Mat(cv::Size(w, h), CV_8UC1, (void*)colored_frame.get_data());
-      // cv::imshow("Video feed", frame);
+      Mat frame(Size(w, h), CV_8UC3, (void*)colored_frame.get_data(), Mat::AUTO_STEP);
 		// Update the tracker and draw the rectangle around target if update was successful
 
-    tracker->update(frame, trackingBox);
-    // if (tracker->update(frame, trackingBox)) {
-		// 	cv::rectangle(frame, trackingBox, cv::Scalar(255, 0, 0), 2, 8);
-		// }
+    cout << " right before update "<<endl;
+    //tracker->update(frame, trackingBox);
+     cout<<" channels " << frame.channels();
+     if (tracker->update(frame, trackingBox)) {
+       cout << " get in if statement "<<endl;
 
+			cv::rectangle(frame, trackingBox, cv::Scalar(255, 0, 0), 2, 8);
+		}
+    cv::imshow("video feed", frame);
+    waitKey(30);
+    cout << " cv imshow error "<<endl;
 		// Display the frame
-		// cv::imshow("Video feed", frame);
+		//cv::imshow("Video feed", frame);
 
 		// Write video frame to output
 		//output.write(frame);
 
 		// For breaking the loop
-		// if (cv::waitKey(25) >= 0) break;
 
 	} // end while (video.read(frame))
 
@@ -75,7 +84,7 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
     // groupThreshold (set groupThreshold to 0 to turn off the grouping completely).
     hog.detectMultiScale(img, found, 0.1, Size(8,8), Size(32,32), 1.05, 2);
     t = (double) getTickCount() - t;
-    cout << "detection time = " << (t*1000./cv::getTickFrequency()) << " ms" << endl;
+    cout << "detection time = " << (t*1000./cv::getTickFrequency()) << " ms " << endl;
     for(size_t i = 0; i < found.size(); i++ )
     {
         Rect r = found[i];
@@ -98,7 +107,7 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
         r.height = cvRound(r.height*0.8);
         rectangle(img, r.tl(), r.br(), cv::Scalar(0,255,0), 3);
         *main_rect = r;
-        cout << "DETECTED PERSON = " << main_rect->tl() << " ms" << endl;
+        cout << " DETECTED PERSON = " << main_rect->tl() << " ms" << endl;
         return 1;
     }
     return 0;
@@ -157,7 +166,7 @@ int main(int argc, char** argv)
 
             //cv::Mat frame = cv::Mat(cv::Size(1280, 720), CV_8UC1, (void*)colored_frame.get_data());
 
-            frame = cv::Mat(cv::Size(w, h), CV_8UC1, (void*)colored_frame.get_data());
+            // frame = cv::Mat(cv::Size(w, h), CV_8UC1, (void*)colored_frame.get_data());
             // init_frame =
             Mat image(Size(w, h), CV_8UC3, (void*)colored_frame.get_data(), Mat::AUTO_STEP);
             frame = image;
@@ -172,6 +181,8 @@ int main(int argc, char** argv)
           }
 }
           MOSSE(frame,main_rect, p);
+
+    //return 0;
               // int c = waitKey( vc.isOpened() ? 30 : 0 ) & 255;
               // if ( c == 'q' || c == 'Q' || c == 27){
               //     break;
