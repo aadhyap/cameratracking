@@ -47,7 +47,7 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2::decimation_filter d
 		// Update the tracker and draw the rectangle around target if update was successful
 
     //filtering depth
-    rs2::depth_frame filtered_depth = depth;
+    rs2::frame filtered_depth = depth;
     filtered_depth = dec_filter.process(filtered_depth);
     filtered_depth = spatial_filter.process(filtered_depth);
 
@@ -152,21 +152,22 @@ int main(int argc, char** argv)
     // main_rect (0,0,500,500);
 
 
-      rs2::pipeline p;
-      rs2::config cfg;
+    rs2::pipeline p;
+    rs2::config cfg;
+  // Declare filters
+    rs2::decimation_filter dec_filter;
+    rs2::spatial_filter spat_filter;
+
+    // Configure filter parameters
+    dec_filter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 3);
+    spat_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, 0.55f);
+
+
       cfg.enable_stream(RS2_STREAM_DEPTH);
       cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
 
-
-      //Depth Filters
-  rs2::decimation_filter dec_filter;
-  rs2::spatial_filter spat_filter;
-
-  //Configure Filter parameters
-  dec_filter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 3);
-  spat_filter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 0.55f);
-
       p.start(cfg);
+      //p.start();
 
         VideoCapture vc;
         //Mat frame;
@@ -197,6 +198,7 @@ int main(int argc, char** argv)
               //imshow("people detector", image);
           }
 }
+
           MOSSE(frame,main_rect, p, dec_filter, spat_filter);
 
 
