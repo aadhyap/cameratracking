@@ -71,7 +71,7 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
     //std::cout << "Color width of frame " << colored_frame.get_width() << " Color height of frame \n" << colored_frame.get_height() << endl;
 
     std::cout << "The camera is facing an object " << dist_to_center << " meters away \r" <<endl;
-  
+
 
     cv::imshow("video feed", frame);
     waitKey(30);
@@ -131,17 +131,7 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
         return 1;
     }
     return 0;
-    // for (size_t i = 0; i < found_filtered.size(); i++)
-    // {
-        // Rect r = found_filtered[i];
-        // The HOG detector returns slightly larger rectangles than the real objects,
-        // so we slightly shrink the rectangles to get a nicer output.
-        // r.x += cvRound(r.width*0.1);
-        // r.width = cvRound(r.width*0.8);
-        // r.y += cvRound(r.height*0.07);
-        // r.height = cvRound(r.height*0.8);
-        // rectangle(img, r.tl(), r.br(), cv::Scalatlr(0,255,0), 3);
-    // }
+    
 }
 
 
