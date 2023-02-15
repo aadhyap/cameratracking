@@ -15,10 +15,7 @@ using namespace std;
 
 //This is drawing the bounding box
 
-int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
-
-  // cv::Mat frame;
-  cout << " frame channels------"<< frame.channels() << endl;
+int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2::decimation_filter dec_filter, rs2::spatial_filter spatial_filter) {
 
 	// Create tracker, select region-of-interest (ROI) and initialize the tracker
 	cv::Ptr<cv::Tracker> tracker = TrackerKCF::create();
@@ -28,6 +25,8 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
   //able to initialize a frame
   cout <<" here "<<endl;
 
+
+
 	// Loop through available frames
 	for (;;) {
 
@@ -35,6 +34,8 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
 
     rs2::frameset frames = p.wait_for_frames();
     auto colored_frame = frames.get_color_frame();
+    rs2::depth_frame depth = frames.get_depth_frame();
+
 
     cout << " got frames "<<endl;
 
@@ -45,14 +46,28 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
       Mat frame(Size(w, h), CV_8UC3, (void*)colored_frame.get_data(), Mat::AUTO_STEP);
 		// Update the tracker and draw the rectangle around target if update was successful
 
-    cout << " right before update "<<endl;
-    //tracker->update(frame, trackingBox);
-     cout<<" channels " << frame.channels();
+    //filtering depth
+    rs2::depth_frame filtered_depth = depth;
+    filtered_depth = dec_filter.process(filtered_depth);
+    filtered_depth = spatial_filter.process(filtered_depth);
+
+
      if (tracker->update(frame, trackingBox)) {
-       cout << " get in if statement "<<endl;
 
 			cv::rectangle(frame, trackingBox, cv::Scalar(255, 0, 0), 2, 8);
 		}
+    float width = depth.get_width();
+    float height = depth.get_height();
+    //cout << " rectangle top left " << main_rect.tl() << " rectangle bottom right " << main_rect.br();
+    //cout << "width of rectangle " << (main_rect.br().x - main_rect.tl().x) << " height of rectangle " << main_rect.br().y - main_rect.tl().y << "\n";
+    // Query the distance from the camera to the object in the center of the image
+    float dist_to_center = filtered_depth.get_distance((main_rect.br().x - main_rect.tl().x) , main_rect.br().y - main_rect.tl().y);
+    //circle(trackingBox, Point2i((main_rect.br().x - main_rect.tl().x)/2), (main_rect.br().y - main_rect.tl().y)/), 5, Scalar(0,125,230), 4, 3);
+
+    // Print the distance
+    //std::cout << "width of frame " << width << " height of frame \n" << height ;
+    //std::cout << "width of color frame " << colored_frame.get_width() << " height of colored \n" << colored_frame.get_height();
+    std::cout << "The camera is facing an object " << dist_to_center << " meters away \r";
     cv::imshow("video feed", frame);
     waitKey(30);
     cout << " cv imshow error "<<endl;
@@ -123,6 +138,9 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
         // rectangle(img, r.tl(), r.br(), cv::Scalatlr(0,255,0), 3);
     // }
 }
+
+
+
 int main(int argc, char** argv)
 {
 
@@ -139,11 +157,16 @@ int main(int argc, char** argv)
       cfg.enable_stream(RS2_STREAM_DEPTH);
       cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
 
+
+      //Depth Filters
+  rs2::decimation_filter dec_filter;
+  rs2::spatial_filter spat_filter;
+
+  //Configure Filter parameters
+  dec_filter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 3);
+  spat_filter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 0.55f);
+
       p.start(cfg);
-
-
-
-
 
         VideoCapture vc;
         //Mat frame;
@@ -164,15 +187,9 @@ int main(int argc, char** argv)
             const int h = colored_frame.as<rs2::video_frame>().get_height();
 
 
-            //cv::Mat frame = cv::Mat(cv::Size(1280, 720), CV_8UC1, (void*)colored_frame.get_data());
-
-            // frame = cv::Mat(cv::Size(w, h), CV_8UC1, (void*)colored_frame.get_data());
-            // init_frame =
             Mat image(Size(w, h), CV_8UC3, (void*)colored_frame.get_data(), Mat::AUTO_STEP);
             frame = image;
 
-            // if (frame.empty())
-                // break;
             if(detectAndDraw(hog, image, &main_rect)){
 
               cout << "----------------"<< main_rect.tl()<<endl;
@@ -180,20 +197,9 @@ int main(int argc, char** argv)
               //imshow("people detector", image);
           }
 }
-          MOSSE(frame,main_rect, p);
-
-    //return 0;
-              // int c = waitKey( vc.isOpened() ? 30 : 0 ) & 255;
-              // if ( c == 'q' || c == 'Q' || c == 27){
-              //     break;
-              //   }
-              //   break;
+          MOSSE(frame,main_rect, p, dec_filter, spat_filter);
 
 
-
-
-            // if ( c == 'q' || c == 'Q' || c == 27)
-            //     break;
 
 
 
