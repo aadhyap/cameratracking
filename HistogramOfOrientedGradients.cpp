@@ -61,18 +61,21 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
     //cout << " rectangle top left " << main_rect.tl() << " rectangle bottom right " << main_rect.br();
     //cout << "width of rectangle " << (main_rect.br().x - main_rect.tl().x) << " height of rectangle " << main_rect.br().y - main_rect.tl().y << "\n";
     // Query the distance from the camera to the object in the center of the image
-    float dist_to_center = filtered_depth.get_distance((trackingBox.br().x - trackingBox.tl().x) , trackingBox.br().y - trackingBox.tl().y);
+    float dist_to_center = filtered_depth.get_distance((trackingBox.br().x + trackingBox.tl().x)/2, (trackingBox.br().y + trackingBox.tl().y)/2);
     //circle(trackingBox, Point2i((trackingBox.br().x - trackingBox.tl().x)), (trackingBox.br().y - trackingBox.tl().y)), 5, Scalar(0,125,230), 4, 3);
-
+    cv::circle(frame, Point2i((trackingBox.br().x + trackingBox.tl().x)/2,(trackingBox.br().y + trackingBox.tl().y)/2), 3, cv::Scalar(255,255,255), -1);
 
 
     // Print the distance
-    std::cout << " Depth width of frame " << width << " Depth height of frame" << height << endl  ;
-    std::cout << "Color width of frame " << colored_frame.get_width() << " Color height of frame \n" << colored_frame.get_height() << endl;
+    //std::cout << " Depth width of frame " << width << " Depth height of frame" << height << endl  ;
+    //std::cout << "Color width of frame " << colored_frame.get_width() << " Color height of frame \n" << colored_frame.get_height() << endl;
+    if(dist_to_center > 10){
     std::cout << "The camera is facing an object " << dist_to_center << " meters away \r" <<endl;
+  }
+
     cv::imshow("video feed", frame);
     waitKey(30);
-    cout << " cv imshow error "<<endl;
+    //cout << " cv imshow error "<<endl;
 		// Display the frame
 		//cv::imshow("Video feed", frame);
 
