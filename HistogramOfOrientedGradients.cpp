@@ -15,7 +15,7 @@ using namespace std;
 
 //This is drawing the bounding box
 
-int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2::decimation_filter dec_filter, rs2::spatial_filter spatial_filter) {
+int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
 
 	// Create tracker, select region-of-interest (ROI) and initialize the tracker
 	cv::Ptr<cv::Tracker> tracker = TrackerKCF::create();
@@ -47,12 +47,13 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2::decimation_filter d
 		// Update the tracker and draw the rectangle around target if update was successful
 
     //filtering depth
-    rs2::frame filtered_depth = depth;
-    filtered_depth = dec_filter.process(filtered_depth);
-    filtered_depth = spatial_filter.process(filtered_depth);
+    rs2::depth_frame filtered_depth = depth;
+    //filtered_depth = dec_filter.process(filtered_depth);
+    //filtered_depth = spatial_filter.process(filtered_depth);
 
 
      if (tracker->update(frame, trackingBox)) {
+
 
 			cv::rectangle(frame, trackingBox, cv::Scalar(255, 0, 0), 2, 8);
 		}
@@ -61,8 +62,8 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2::decimation_filter d
     //cout << " rectangle top left " << main_rect.tl() << " rectangle bottom right " << main_rect.br();
     //cout << "width of rectangle " << (main_rect.br().x - main_rect.tl().x) << " height of rectangle " << main_rect.br().y - main_rect.tl().y << "\n";
     // Query the distance from the camera to the object in the center of the image
-    float dist_to_center = filtered_depth.get_distance((main_rect.br().x - main_rect.tl().x) , main_rect.br().y - main_rect.tl().y);
-    //circle(trackingBox, Point2i((main_rect.br().x - main_rect.tl().x)/2), (main_rect.br().y - main_rect.tl().y)/), 5, Scalar(0,125,230), 4, 3);
+    float dist_to_center = filtered_depth.get_distance((trackingBox.br().x - trackingBox.tl().x) , trackingBox.br().y - trackingBox.tl().y);
+    //circle(trackingBox, Point2i((trackingBox.br().x - trackingBox.tl().x)), (trackingBox.br().y - trackingBox.tl().y)), 5, Scalar(0,125,230), 4, 3);
 
     // Print the distance
     //std::cout << "width of frame " << width << " height of frame \n" << height ;
@@ -155,12 +156,12 @@ int main(int argc, char** argv)
     rs2::pipeline p;
     rs2::config cfg;
   // Declare filters
-    rs2::decimation_filter dec_filter;
-    rs2::spatial_filter spat_filter;
+    //rs2::decimation_filter dec_filter;
+    //rs2::spatial_filter spat_filter;
 
     // Configure filter parameters
-    dec_filter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 3);
-    spat_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, 0.55f);
+    //dec_filter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 3);
+    //spat_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, 0.55f);
 
 
       cfg.enable_stream(RS2_STREAM_DEPTH);
@@ -199,7 +200,7 @@ int main(int argc, char** argv)
           }
 }
 
-          MOSSE(frame,main_rect, p, dec_filter, spat_filter);
+          MOSSE(frame,main_rect, p);
 
 
 
