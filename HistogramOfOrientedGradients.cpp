@@ -22,22 +22,21 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
 	cv::Rect trackingBox = main_rect;
 	tracker->init(frame, trackingBox);
 
-  //able to initialize a frame
-  cout <<" here "<<endl;
-
-
+  rs2::align align_to_depth(RS2_STREAM_DEPTH);
+  rs2::align align_to_color(RS2_STREAM_COLOR);
 
 	// Loop through available frames
 	for (;;) {
 
-    cout << " inside loop "<<endl;
+
 
     rs2::frameset frames = p.wait_for_frames();
+    frames = align_to_depth.process(frames);
     auto colored_frame = frames.get_color_frame();
     rs2::depth_frame depth = frames.get_depth_frame();
 
 
-    cout << " got frames "<<endl;
+    //cout << " got frames "<<endl;
 
     // Rect2d r2d = Rect2d (main_rect.x, main_rect.y, main_rect.width, main_rect.height);
 
@@ -65,10 +64,12 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
     float dist_to_center = filtered_depth.get_distance((trackingBox.br().x - trackingBox.tl().x) , trackingBox.br().y - trackingBox.tl().y);
     //circle(trackingBox, Point2i((trackingBox.br().x - trackingBox.tl().x)), (trackingBox.br().y - trackingBox.tl().y)), 5, Scalar(0,125,230), 4, 3);
 
+
+
     // Print the distance
-    //std::cout << "width of frame " << width << " height of frame \n" << height ;
-    //std::cout << "width of color frame " << colored_frame.get_width() << " height of colored \n" << colored_frame.get_height();
-    std::cout << "The camera is facing an object " << dist_to_center << " meters away \r";
+    std::cout << " Depth width of frame " << width << " Depth height of frame" << height << endl  ;
+    std::cout << "Color width of frame " << colored_frame.get_width() << " Color height of frame \n" << colored_frame.get_height() << endl;
+    std::cout << "The camera is facing an object " << dist_to_center << " meters away \r" <<endl;
     cv::imshow("video feed", frame);
     waitKey(30);
     cout << " cv imshow error "<<endl;
@@ -177,12 +178,22 @@ int main(int argc, char** argv)
       //  vector<String>::const_iterator it_image = frames.begin();
 
         cv::Mat frame;
+
+        rs2::align align_to_depth(RS2_STREAM_DEPTH);
+        rs2::align align_to_color(RS2_STREAM_COLOR);
+// ...
+
         for (;;)
         {
 
+
           //wait for frames and get frameset
           rs2::frameset frames = p.wait_for_frames();
+          frames = align_to_depth.process(frames);
           auto colored_frame = frames.get_color_frame();
+
+          //std::cout << " Depth width of frame " << width << " Depth height of frame" << height << endl  ;
+          //std::cout << "Color width of frame " << colored_frame.get_width() << " Color height of frame \n" << colored_frame.get_height() << endl;
 
 
             const int w = colored_frame.as<rs2::video_frame>().get_width();
