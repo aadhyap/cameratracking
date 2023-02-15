@@ -69,9 +69,9 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
     // Print the distance
     //std::cout << " Depth width of frame " << width << " Depth height of frame" << height << endl  ;
     //std::cout << "Color width of frame " << colored_frame.get_width() << " Color height of frame \n" << colored_frame.get_height() << endl;
-    if(dist_to_center > 10){
+
     std::cout << "The camera is facing an object " << dist_to_center << " meters away \r" <<endl;
-  }
+  
 
     cv::imshow("video feed", frame);
     waitKey(30);
