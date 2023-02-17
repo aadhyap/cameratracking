@@ -10,6 +10,7 @@
 #include <librealsense2/rs.hpp>
 using namespace cv;
 using namespace std;
+#include <math.h>
 
 
 
@@ -66,9 +67,13 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2_intrinsics &depth_in
     float pixel[2] = {(trackingBox.br().x + trackingBox.tl().x)/2, (trackingBox.br().y + trackingBox.tl().y)/2 };
     float point[3];
     rs2_deproject_pixel_to_point(point, &depth_intr, pixel, dist_to_center);
+    float angle  = atan2(point[2],point[0]);
+    angle  = angle *180/3.14;
     //circle(trackingBox, Point2i((trackingBox.br().x - trackingBox.tl().x)), (trackingBox.br().y - trackingBox.tl().y)), 5, Scalar(0,125,230), 4, 3);
     cv::circle(frame, Point2i((trackingBox.br().x + trackingBox.tl().x)/2,(trackingBox.br().y + trackingBox.tl().y)/2), 3, cv::Scalar(255,255,255), -1);
-    cout << "point x z " <<  point[0] << " " << point[2] << endl;
+    cout << "point x z " <<  point[0] << " " << point[2] << " angle "<< angle <<endl;
+
+
     // Print the distance
     //std::cout << " Depth width of frame " << width << " Depth height of frame" << height << endl  ;
     //std::cout << "Color width of frame " << colored_frame.get_width() << " Color height of frame \n" << colored_frame.get_height() << endl;
