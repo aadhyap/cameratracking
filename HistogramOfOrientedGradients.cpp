@@ -13,9 +13,10 @@ using namespace std;
 
 
 
-//This is drawing the bounding box
 
-int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
+//This is drawing the bounding box and return coordinates of center of box
+
+int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2_intrinsics &depth_intr) {
 
 	// Create tracker, select region-of-interest (ROI) and initialize the tracker
 	cv::Ptr<cv::Tracker> tracker = TrackerKCF::create();
@@ -36,9 +37,8 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
     rs2::depth_frame depth = frames.get_depth_frame();
 
 
-    //cout << " got frames "<<endl;
 
-    // Rect2d r2d = Rect2d (main_rect.x, main_rect.y, main_rect.width, main_rect.height);
+
 
       const int w = colored_frame.as<rs2::video_frame>().get_width();
       const int h = colored_frame.as<rs2::video_frame>().get_height();
@@ -62,10 +62,13 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
     //cout << "width of rectangle " << (main_rect.br().x - main_rect.tl().x) << " height of rectangle " << main_rect.br().y - main_rect.tl().y << "\n";
     // Query the distance from the camera to the object in the center of the image
     float dist_to_center = filtered_depth.get_distance((trackingBox.br().x + trackingBox.tl().x)/2, (trackingBox.br().y + trackingBox.tl().y)/2);
+
+    float pixel[2] = {(trackingBox.br().x + trackingBox.tl().x)/2, (trackingBox.br().y + trackingBox.tl().y)/2 };
+    float point[3];
+    rs2_deproject_pixel_to_point(point, &depth_intr, pixel, dist_to_center);
     //circle(trackingBox, Point2i((trackingBox.br().x - trackingBox.tl().x)), (trackingBox.br().y - trackingBox.tl().y)), 5, Scalar(0,125,230), 4, 3);
     cv::circle(frame, Point2i((trackingBox.br().x + trackingBox.tl().x)/2,(trackingBox.br().y + trackingBox.tl().y)/2), 3, cv::Scalar(255,255,255), -1);
-
-
+    cout << "point x z " <<  point[0] << " " << point[2] << endl;
     // Print the distance
     //std::cout << " Depth width of frame " << width << " Depth height of frame" << height << endl  ;
     //std::cout << "Color width of frame " << colored_frame.get_width() << " Color height of frame \n" << colored_frame.get_height() << endl;
@@ -131,7 +134,7 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p) {
         return 1;
     }
     return 0;
-    
+
 }
 
 
@@ -144,6 +147,7 @@ int main(int argc, char** argv)
     namedWindow("people detector", 1);
     int camera_id = 0;
     Rect main_rect;
+    rs2_intrinsics depth_intr;
     // main_rect (0,0,500,500);
 
 
@@ -161,7 +165,9 @@ int main(int argc, char** argv)
       cfg.enable_stream(RS2_STREAM_DEPTH);
       cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
 
-      p.start(cfg);
+      auto profile = p.start(cfg);
+      auto depth_stream = profile.get_stream(RS2_STREAM_COLOR).as<rs2::video_stream_profile>();
+      depth_intr = depth_stream.get_intrinsics();
       //p.start();
 
         VideoCapture vc;
@@ -204,7 +210,7 @@ int main(int argc, char** argv)
           }
 }
 
-          MOSSE(frame,main_rect, p);
+          MOSSE(frame,main_rect, p, depth_intr);
 
 
 
