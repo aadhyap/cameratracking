@@ -45,11 +45,8 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2_intrinsics &depth_in
       const int h = colored_frame.as<rs2::video_frame>().get_height();
       Mat frame(Size(w, h), CV_8UC3, (void*)colored_frame.get_data(), Mat::AUTO_STEP);
 		// Update the tracker and draw the rectangle around target if update was successful
-
-    //filtering depth
     rs2::depth_frame filtered_depth = depth;
-    //filtered_depth = dec_filter.process(filtered_depth);
-    //filtered_depth = spatial_filter.process(filtered_depth);
+
 
 
      if (tracker->update(frame, trackingBox)) {
@@ -71,7 +68,14 @@ int MOSSE(Mat &frame,Rect &main_rect, rs2::pipeline &p, rs2_intrinsics &depth_in
     angle  = angle *180/3.14;
     //circle(trackingBox, Point2i((trackingBox.br().x - trackingBox.tl().x)), (trackingBox.br().y - trackingBox.tl().y)), 5, Scalar(0,125,230), 4, 3);
     cv::circle(frame, Point2i((trackingBox.br().x + trackingBox.tl().x)/2,(trackingBox.br().y + trackingBox.tl().y)/2), 3, cv::Scalar(255,255,255), -1);
+
+    std::string text = "x and z " + std::to_string(point[0]) + " " + std::to_string(point[2]) + " angle " + std::to_string(angle) +
+    " The camera is facing an object " + std::to_string(dist_to_center) + " meters away ";
+
+    putText(frame, text, Point(30,30),
+    FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(200,200,250), 1);
     cout << "point x z " <<  point[0] << " " << point[2] << " angle "<< angle <<endl;
+
 
 
     // Print the distance
